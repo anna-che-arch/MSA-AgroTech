@@ -1,0 +1,46 @@
+@startuml
+!include <c4/C4_Context>
+
+title Контекстная диаграмма C1: Единая система мониторинга агрохолдинга
+
+Person(admin, "Администратор", "Сотрудник агрохолдинга, отвечающий за мониторинг всех активов")
+Person(farmer, "Фермер", "Работник на ферме, использующий мобильное приложение")
+Person(greenhouse_worker, "Работник теплиц", "Сотрудник, отвечающий за тепличный комплекс")
+Person(field_worker, "Полевой работник", "Сотрудник, отвечающий за технику на полях")
+
+System(monitoring_system, "Единая система мониторинга", "Обеспечивает сбор, анализ и представление данных со всех активов холдинга: теплиц, полей и свиноферм")
+
+System_Ext(camera_system, "Система камер видеонаблюдения", "Внешняя система: камеры, установленные на свинофермах")
+System_Ext(sensor_gateway, "Шлюз сбора данных с датчиков", "Внешняя система: собирает данные с датчиков корма, воды и фильтрации")
+System_Ext(ai_provider, "Сервис нейросети (AI)", "Внешний сервис: предоставляет API для анализа изображений")
+System_Ext(kafka, "Apache Kafka", "Внешняя (общая) система обмена сообщениями")
+System_Ext(portal, "Веб-портал агрохолдинга", "Единый портал для мониторинга всех активов")
+System_Ext(mobile_app, "Мобильное приложение агрохолдинга", "Единое приложение для сотрудников")
+
+System_Ext(water_sensor, "Датчики уровня воды", "Внешние IoT-устройства")
+System_Ext(feed_sensor, "Датчики уровня корма", "Внешние IoT-устройства")
+System_Ext(filtration_sensor, "Датчики системы фильтрации", "Внешние IoT-устройства")
+System_Ext(greenhouse_sensors, "Датчики теплиц", "Существующие датчики климата в теплицах")
+System_Ext(field_sensors, "Датчики техники", "Существующие датчики ГСМ и техники на полях")
+
+' Relationships - Пользователи
+Rel(admin, monitoring_system, "Просматривает дашборды, настраивает оповещения", "HTTPS")
+Rel(farmer, mobile_app, "Получает уведомления и данные о состоянии фермы")
+Rel(greenhouse_worker, portal, "Мониторит состояние теплиц")
+Rel(field_worker, mobile_app, "Контролирует технику и ГСМ")
+
+' Relationships - Взаимодействие с внешними системами
+Rel(monitoring_system, camera_system, "Получает raw-изображения/видеопоток для анализа", "RTSP/HTTP")
+Rel(monitoring_system, ai_provider, "Отправляет изображения, получает результаты анализа", "REST API")
+Rel(monitoring_system, kafka, "Публикует и потребляет данные для обработки", "Kafka Protocol")
+Rel(monitoring_system, portal, "Предоставляет все данные для единого портала", "HTTPS/API")
+Rel(monitoring_system, mobile_app, "Предоставляет API для всех типов данных", "HTTPS/API")
+
+' Relationships - Данные с датчиков
+Rel(water_sensor, sensor_gateway, "Передает данные об уровне воды", "LoRaWAN/ZigBee/MQTT")
+Rel(feed_sensor, sensor_gateway, "Передает данные об уровне корма", "LoRaWAN/ZigBee/MQTT")
+Rel(filtration_sensor, sensor_gateway, "Передает данные о состоянии фильтрации", "LoRaWAN/ZigBee/MQTT")
+Rel(greenhouse_sensors, kafka, "Публикует данные климата через существующие сервисы", "Kafka Protocol")
+Rel(field_sensors, kafka, "Публикует данные техники через существующие сервисы", "Kafka Protocol")
+Rel(sensor_gateway, kafka, "Публикует данные с датчиков свиноферм", "Kafka Protocol")
+@enduml

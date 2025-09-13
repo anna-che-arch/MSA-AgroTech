@@ -1,0 +1,28 @@
+@startuml
+title Component Diagram: Stream Processor
+
+package "Stream Processor" {
+  [KStream Builder] as kstream_builder <<Kafka Streams>>
+  [Window Processor] as window_processor <<Kafka Streams>>
+  [State Store] as state_store <<RocksDB>>
+  [ML Integration] as ml_integration <<Python>>
+  [Anomaly Detector] as anomaly_detector <<Java>>
+  [Metrics Aggregator] as metrics_aggregator <<Kafka>>
+  [Serialization] as serialization <<Avro>>
+}
+
+' Internal connections
+kstream_builder --> window_processor : build()
+window_processor --> state_store : storeState()
+window_processor --> ml_integration : callML()
+ml_integration --> anomaly_detector : process()
+anomaly_detector --> metrics_aggregator : aggregate()
+serialization --> kstream_builder : deserialize()
+
+' External dependencies
+kstream_builder --> [Kafka Topics] : Input
+metrics_aggregator --> [Kafka Topics] : Output
+ml_integration --> [ML Service] : gRPC
+state_store --> [RocksDB] : Native
+
+@enduml

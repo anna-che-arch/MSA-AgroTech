@@ -1,0 +1,32 @@
+@startuml
+!define Component(name,desc) component name as desc
+!define Container(name,desc) rectangle name as desc
+
+title Component Diagram: Analytics Engine
+
+package "Analytics Engine" {
+  [REST Controller] as api_controller <<Spring MVC>>
+  [Stream Processor] as stream_processor <<Spring Cloud Stream>>
+  [Correlation Service] as correlation_service <<Java>>
+  [Rule Evaluator] as rule_evaluator <<Drools>>
+  [Metrics Calculator] as metrics_calculator <<Java>>
+  [Cache Manager] as cache_manager <<Redis>>
+  [Metrics Repository] as repository <<Spring Data>>
+}
+
+' Internal connections
+api_controller --> stream_processor : Async
+stream_processor --> correlation_service : Events
+correlation_service --> rule_evaluator : Rules Check
+rule_evaluator --> metrics_calculator : Metrics Calc
+metrics_calculator --> repository : Save
+api_controller --> cache_manager : Cache
+cache_manager --> repository : Read/Write
+
+' External dependencies
+api_controller --> [External Clients] : HTTP/JSON
+stream_processor --> [RabbitMQ] : AMQP
+repository --> [TimescaleDB] : JDBC
+cache_manager --> [Redis] : Redis Protocol
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+title Code Level: Rule Evaluator Component
+
+package "Rule Evaluator" {
+  [KIE Container] as kie_container <<Drools>>
+  [Rule Session] as rule_session <<Drools>> 
+  [Fact Manager] as fact_manager <<Java>>
+  [Rule Compiler] as rule_compiler <<Drools>>
+  [Monitoring] as monitoring <<Micrometer>>
+}
+
+' Internal connections
+kie_container --> rule_session : createSession()
+rule_session --> fact_manager : manageFacts()
+rule_compiler --> kie_container : loadRules()
+monitoring --> rule_session : monitor()
+
+' External dependencies
+kie_container --> [Rules DB] : JDBC
+rule_session --> [Input Events] : Kafka/Rabbit
+monitoring --> [Prometheus] : HTTP
+fact_manager --> [Data Services] : gRPC
+
+@enduml

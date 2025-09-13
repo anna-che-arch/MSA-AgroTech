@@ -1,0 +1,40 @@
+@startuml
+!include <c4/C4_Context>
+
+title Контекстная диаграмма C1: Система мониторинга свиноферм агрохолдинга
+
+Person(admin, "Администратор", "Сотрудник агрохолдинга, отвечающий за мониторинг состояния свиноферм")
+Person(farmer, "Фермер", "Работник на ферме, использующий мобильное приложение")
+
+System(swine_monitoring_system, "Система мониторинга свиноферм", "Обеспечивает сбор, анализ и представление данных с камер и датчиков для контроля за поголовьем, ресурсами и выявления аномалий")
+
+System_Ext(camera_system, "Система камер видеонаблюдения", "Внешняя система: камеры, установленные на свинофермах, и их система управления")
+System_Ext(sensor_gateway, "Шлюз сбора данных с датчиков", "Внешняя система: собирает данные с датчиков корма, воды и фильтрации, преобразует и передает в Kafka")
+System_Ext(ai_provider, "Сервис нейросети (AI)", "Внешний сервис: предоставляет API для анализа изображений и обнаружения объектов")
+System_Ext(kafka, "Apache Kafka", "Внешняя (общая) система обмена сообщениями. Принимает данные для обработки")
+System_Ext(portal, "Веб-портал агрохолдинга", "Внешняя система: основной портал для мониторинга всех активов")
+System_Ext(mobile_app, "Мобильное приложение агрохолдинга", "Внешняя система: существующее мобильное приложение для сотрудников")
+
+System_Ext(water_sensor, "Датчики уровня воды", "Внешние IoT-устройства")
+System_Ext(feed_sensor, "Датчики уровня корма", "Внешние IoT-устройства")
+System_Ext(filtration_sensor, "Датчики системы фильтрации", "Внешние IoT-устройства")
+
+' Relationships - Пользователи
+Rel(admin, swine_monitoring_system, "Просматривает дашборды, настраивает оповещения", "HTTPS")
+Rel(farmer, mobile_app, "Получает уведомления и оперативные данные о состоянии фермы")
+
+' Relationships - Взаимодействие с внешними системами
+Rel(swine_monitoring_system, camera_system, "Получает raw-изображения/видеопоток для анализа", "RTSP/HTTP")
+Rel(swine_monitoring_system, ai_provider, "Отправляет изображения, получает результаты анализа (JSON)", "REST API")
+Rel(swine_monitoring_system, kafka, "Публикует результаты анализа для consumption другими системами", "Kafka Protocol")
+Rel(swine_monitoring_system, portal, "Предоставляет данные и UI для интеграции в общий веб-портал", "HTTPS/API")
+Rel(swine_monitoring_system, mobile_app, "Предоставляет API для запроса данных и push-уведомлений", "HTTPS/API")
+
+' Relationships - Новые связи для датчиков
+Rel(water_sensor, sensor_gateway, "Передает данные об уровне воды", "LoRaWAN/ ZigBee/ MQTT")
+Rel(feed_sensor, sensor_gateway, "Передает данные об уровне корма", "LoRaWAN/ ZigBee/ MQTT")
+Rel(filtration_sensor, sensor_gateway, "Передает данные о состоянии фильтрации", "LoRaWAN/ ZigBee/ MQTT")
+Rel(sensor_gateway, kafka, "Публикует данные с датчиков в соответствующие топики", "Kafka Protocol")
+
+' Optional: Highlight the system in focus
+@enduml
