@@ -1,0 +1,41 @@
+@startuml
+!include <c4/C4_Container>
+
+System_Boundary(system, "Система мониторинга свиноферм") {
+
+    Container(video_ingestion, "Video Ingestion Service", "Go", "Прием видео потоков")
+    Container(ai_processor, "AI Processor Service", "Python", "Стриминговая обработка")
+    
+    Container(sensor_agent, "Sensor Agent", "Rust", "Агент сбора данных")
+    Container(stream_processor, "Stream Processor", "Java", "Обработка потоков данных")
+    
+    Container(kafka_streams, "Kafka Streams API", "Java", "Реaltime обработка")
+    Container(ml_engine, "ML Engine", "Python", "Анализ в реальном времени")
+    
+    Container(alert_stream, "Alert Stream Processor", "Scala", "Обработка оповещений")
+    Container(notification_dispatcher, "Notification Dispatcher", "Go", "Диспетчеризация")
+    
+    Container(api_gateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа")
+    Container(query_service, "Query Service", "Java", "Запросы к данным")
+    
+    ContainerDb(clickhouse_db, "ClickHouse", "ClickHouse", "Аналитика временных рядов")
+    ContainerDb(operational_db, "Operational DB", "PostgreSQL", "Операционные данные")
+    
+    ContainerQueue(event_bus, "Event Bus", "Apache Kafka", "Стриминговая платформа\n(Высокая пропускная способность)")
+}
+
+' Интеграции
+Rel(video_ingestion, event_bus, "Публикация видео фреймов", "Kafka Protocol")
+Rel(ai_processor, event_bus, "Потоковая обработка", "Kafka Streams")
+Rel(sensor_agent, event_bus, "Публикация метрик", "Kafka Protocol")
+Rel(stream_processor, event_bus, "Обработка потоков", "Kafka Streams")
+
+Rel(kafka_streams, event_bus, "Реaltime обработка", "Kafka Streams API")
+Rel(ml_engine, event_bus, "Публикация аномалий", "Kafka Protocol")
+Rel(alert_stream, event_bus, "Обработка оповещений", "Kafka Streams")
+
+Rel(notification_dispatcher, event_bus, "Потребление оповещений", "Kafka Protocol")
+Rel(query_service, clickhouse_db, "Аналитические запросы", "JDBC")
+Rel(api_gateway, query_service, "Запросы данных", "gRPC")
+
+@enduml

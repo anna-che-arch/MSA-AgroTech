@@ -1,0 +1,27 @@
+@startuml
+title Code Level: Window Processor
+
+package "Window Processor" {
+  [Time Window] as time_window <<Kafka Streams>>
+  [Session Window] as session_window <<Kafka Streams>>
+  [Aggregation] as aggregation <<Kafka Streams>>
+  [Join Processor] as join_processor <<Kafka Streams>>
+  [Window Serializer] as window_serializer <<Custom>>
+  [Window Metrics] as metrics <<Micrometer>>
+}
+
+' Internal connections
+time_window --> aggregation : timeBased()
+session_window --> aggregation : sessionBased() 
+aggregation --> join_processor : join()
+join_processor --> window_serializer : serialize()
+metrics --> time_window : monitor()
+metrics --> session_window : monitor()
+
+' External dependencies
+time_window --> [Input Stream] : Kafka
+window_serializer --> [Output Stream] : Kafka
+metrics --> [Prometheus] : HTTP
+join_processor --> [State Store] : RocksDB
+
+@enduml

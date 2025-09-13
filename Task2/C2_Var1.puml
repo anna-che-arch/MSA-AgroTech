@@ -1,0 +1,50 @@
+@startuml
+!include <c4/C4_Container>
+
+System_Boundary(system, "Система мониторинга свиноферм") {
+
+    Container(video_ingestion, "Video Ingestion Service", "Go", "Прием видео потоков с камер")
+    Container(ai_gateway, "AI Gateway Service", "Python", "Взаимодействие с AI API")
+    
+    Container(sensor_gateway, "Sensor Gateway Service", "C++", "Сбор данных с датчиков")
+    Container(data_normalizer, "Data Normalization Service", "Java", "Нормализация данных")
+    
+    Container(analytics_engine, "Analytics Engine", "Java", "Анализ и корреляция данных")
+    Container(rules_engine, "Rules Engine", "Drools", "Обработка бизнес-правил")
+    Container(anomaly_detection, "Anomaly Detection Service", "Python", "ML-детекция аномалий")
+    
+    Container(notification_service, "Notification Service", "Kotlin", "Управление уведомлениями")
+    Container(alert_manager, "Alert Manager", "Go", "Приоритизация оповещений")
+    
+    Container(api_gateway, "API Gateway", "Spring Cloud Gateway", "Единая точка входа")
+    Container(web_bff, "Web BFF", "Node.js", "Backend для веб-интерфейса")
+    Container(mobile_bff, "Mobile BFF", "Node.js", "Backend для мобильного приложения")
+    
+    ContainerDb(analytics_db, "Analytics DB", "TimescaleDB", "Метрики и временные ряды")
+    ContainerDb(rules_db, "Rules DB", "PostgreSQL", "Бизнес-правила и конфигурация")
+    ContainerDb(notification_db, "Notification DB", "MongoDB", "Шаблоны и подписки")
+    
+    ContainerQueue(message_bus, "Message Bus", "RabbitMQ", "Асинхронная коммуникация\n(AMQP + MQTT)")
+}
+
+' Интеграции
+Rel(video_ingestion, ai_gateway, "Синхронный вызов", "gRPC")
+Rel(ai_gateway, message_bus, "Публикация результатов", "AMQP")
+Rel(sensor_gateway, message_bus, "Публикация данных датчиков", "MQTT")
+Rel(data_normalizer, message_bus, "Публикация нормализованных данных", "AMQP")
+
+Rel(analytics_engine, message_bus, "Потребление данных", "AMQP")
+Rel(analytics_engine, analytics_db, "Запись метрик", "JDBC")
+Rel(rules_engine, rules_db, "Загрузка правил", "JDBC")
+Rel(anomaly_detection, message_bus, "Публикация аномалий", "AMQP")
+
+Rel(notification_service, message_bus, "Потребление аномалий", "AMQP")
+Rel(notification_service, notification_db, "Чтение шаблонов", "MongoDB Driver")
+Rel(alert_manager, notification_service, "Приоритизация", "REST")
+
+Rel(api_gateway, web_bff, "Маршрутизация", "HTTP")
+Rel(api_gateway, mobile_bff, "Маршрутизация", "HTTP")
+Rel(web_bff, analytics_engine, "Запрос данных", "gRPC")
+Rel(mobile_bff, notification_service, "Управление подписками", "REST")
+
+@enduml
